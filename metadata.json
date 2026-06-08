@@ -1,0 +1,12 @@
+{
+  "name": "Student Management System",
+  "description": "Comprehensive student registration, enquiries, fees ledger, and year-wise archives manager.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

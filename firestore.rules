@@ -1,0 +1,119 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny catch-all safety net ruleset
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Reusable, hardened security validation helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    // --- Match Block: Enquiry Collection ---
+    match /enquiries/{enquiryId} {
+      allow read: if isEmailVerified();
+      allow create: if isEmailVerified() && isValidId(enquiryId) && isValidEnquiry(incoming());
+      allow update: if isEmailVerified() && isValidId(enquiryId) && isValidEnquiry(incoming()) && (
+        incoming().id == existing().id &&
+        incoming().CreatedDate == existing().CreatedDate
+      );
+      allow delete: if isEmailVerified() && isValidId(enquiryId);
+    }
+    
+    function isValidEnquiry(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.fullName is string && data.fullName.size() <= 200 &&
+             data.mobile is string && data.mobile.size() <= 20 &&
+             data.village is string && data.village.size() <= 100 &&
+             data.course is string && data.course.size() <= 100 &&
+             data.enquiryDate is string && data.enquiryDate.size() <= 50 &&
+             data.status is string && (data.status == 'pending' || data.status == 'converted' || data.status == 'cancelled') &&
+             (!('notes' in data) || data.notes is string) &&
+             (!('AcademicYear' in data) || (data.AcademicYear is string && data.AcademicYear.size() <= 10)) &&
+             (!('CreatedDate' in data) || (data.CreatedDate is string && data.CreatedDate.size() <= 50)) &&
+             (!('UpdatedDate' in data) || (data.UpdatedDate is string && data.UpdatedDate.size() <= 50));
+    }
+    
+    // --- Match Block: Student Collection ---
+    match /students/{studentId} {
+      allow read: if isEmailVerified();
+      allow create: if isEmailVerified() && isValidId(studentId) && isValidStudent(incoming());
+      allow update: if isEmailVerified() && isValidId(studentId) && isValidStudent(incoming()) && (
+        incoming().id == existing().id &&
+        incoming().CreatedDate == existing().CreatedDate
+      );
+      allow delete: if isEmailVerified() && isValidId(studentId);
+    }
+    
+    function isValidStudent(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.fullName is string && data.fullName.size() <= 200 &&
+             data.mobile is string && data.mobile.size() <= 20 &&
+             data.village is string && data.village.size() <= 100 &&
+             data.course is string && data.course.size() <= 100 &&
+             data.dob is string && data.dob.size() <= 20 &&
+             data.admissionDate is string && data.admissionDate.size() <= 50 &&
+             data.totalFees is number && data.paidAmount is number && data.balanceFees is number &&
+             data.installments is list && data.installments.size() <= 100 &&
+             (!('photo' in data) || (data.photo is string && data.photo.size() <= 2000000)) &&
+             (!('referralName' in data) || (data.referralName is string && data.referralName.size() <= 200)) &&
+             (!('nextInstallmentDate' in data) || (data.nextInstallmentDate is string && data.nextInstallmentDate.size() <= 50)) &&
+             (!('AcademicYear' in data) || (data.AcademicYear is string && data.AcademicYear.size() <= 10)) &&
+             (!('CreatedDate' in data) || (data.CreatedDate is string && data.CreatedDate.size() <= 50)) &&
+             (!('UpdatedDate' in data) || (data.UpdatedDate is string && data.UpdatedDate.size() <= 50));
+    }
+    
+    // --- Match Block: Settings Collection ---
+    match /settings/{settingDoc} {
+      allow read: if isEmailVerified();
+      allow create, update: if isEmailVerified() && isValidId(settingDoc) && (
+        (settingDoc == 'configs' && isValidInstituteSettings(incoming())) ||
+        (settingDoc == 'appConfig' && isValidAppConfig(incoming()))
+      );
+      allow delete: if isEmailVerified() && isValidId(settingDoc);
+    }
+    
+    function isValidInstituteSettings(data) {
+      return data.instituteName is string && data.instituteName.size() <= 200 &&
+             data.ownerName is string && data.ownerName.size() <= 128 &&
+             data.email is string && data.email.size() <= 128 &&
+             data.mobile1 is string && data.mobile1.size() <= 20 &&
+             data.address is string && data.address.size() <= 500 &&
+             data.themeColor is string && (data.themeColor == 'blue' || data.themeColor == 'indigo' || data.themeColor == 'emerald' || data.themeColor == 'slate' || data.themeColor == 'violet') &&
+             (!('logo' in data) || data.logo is string) &&
+             (!('receiptLogo' in data) || data.receiptLogo is string) &&
+             (!('website' in data) || data.website is string) &&
+             (!('mobile2' in data) || data.mobile2 is string) &&
+             (!('whatsAppTemplate' in data) || data.whatsAppTemplate is string) &&
+             (!('whatsAppAdmissionTemplate' in data) || data.whatsAppAdmissionTemplate is string) &&
+             (!('whatsAppReminderTemplate' in data) || data.whatsAppReminderTemplate is string) &&
+             (!('whatsAppReceiptTemplate' in data) || data.whatsAppReceiptTemplate is string);
+    }
+    
+    function isValidAppConfig(data) {
+      return data.courses is list && data.courses.size() <= 100 &&
+             data.courseFees is map &&
+             data.academicYears is list && data.academicYears.size() <= 20 &&
+             (!('selectedYear' in data) || (data.selectedYear is string && data.selectedYear.size() <= 10));
+    }
+  }
+}

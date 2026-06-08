@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Information about a prospective student enquiry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "mobile": { "type": "string" },
+        "village": { "type": "string" },
+        "course": { "type": "string" },
+        "referralName": { "type": "string" },
+        "enquiryDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "converted", "cancelled"] },
+        "notes": { "type": "string" },
+        "AcademicYear": { "type": "string" },
+        "CreatedDate": { "type": "string" },
+        "UpdatedDate": { "type": "string" }
+      },
+      "required": ["id", "fullName", "mobile", "village", "course", "enquiryDate", "status"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Details of an admitted student including fees ledger and installment records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "photo": { "type": "string" },
+        "fullName": { "type": "string" },
+        "mobile": { "type": "string" },
+        "dob": { "type": "string" },
+        "village": { "type": "string" },
+        "course": { "type": "string" },
+        "referralName": { "type": "string" },
+        "admissionDate": { "type": "string" },
+        "totalFees": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "balanceFees": { "type": "number" },
+        "installments": { "type": "array" },
+        "nextInstallmentDate": { "type": "string" },
+        "AcademicYear": { "type": "string" },
+        "CreatedDate": { "type": "string" },
+        "UpdatedDate": { "type": "string" }
+      },
+      "required": ["id", "fullName", "mobile", "dob", "village", "course", "admissionDate", "totalFees", "paidAmount", "balanceFees", "installments"]
+    },
+    "InstituteSettings": {
+      "title": "InstituteSettings",
+      "description": "Global custom configs and parameters of the study center",
+      "type": "object",
+      "properties": {
+        "instituteName": { "type": "string" },
+        "logo": { "type": "string" },
+        "receiptLogo": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "email": { "type": "string" },
+        "website": { "type": "string" },
+        "mobile1": { "type": "string" },
+        "mobile2": { "type": "string" },
+        "address": { "type": "string" },
+        "themeColor": { "type": "string", "enum": ["blue", "indigo", "emerald", "slate", "violet"] },
+        "whatsAppTemplate": { "type": "string" },
+        "whatsAppAdmissionTemplate": { "type": "string" },
+        "whatsAppReminderTemplate": { "type": "string" },
+        "whatsAppReceiptTemplate": { "type": "string" }
+      },
+      "required": ["instituteName", "ownerName", "email", "mobile1", "address", "themeColor"]
+    },
+    "AppConfig": {
+      "title": "AppConfig",
+      "description": "Configuration arrays such as lists of active academic years and custom courses",
+      "type": "object",
+      "properties": {
+        "courses": { "type": "array" },
+        "courseFees": { "type": "object" },
+        "academicYears": { "type": "array" },
+        "selectedYear": { "type": "string" }
+      },
+      "required": ["courses", "courseFees", "academicYears"]
+    }
+  },
+  "firestore": {
+    "/enquiries/{enquiryId}": {
+      "schema": "Enquiry",
+      "description": "Collection of student course enquiries"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of admitted student profiles and payments metadata"
+    },
+    "/settings/configs": {
+      "schema": "InstituteSettings",
+      "description": "Institute settings document representing overall customization details"
+    },
+    "/settings/appConfig": {
+      "schema": "AppConfig",
+      "description": "Document with custom lists of academic years, courses, and course fees configurations"
+    }
+  }
+}
